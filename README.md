@@ -1,2 +1,2 @@
 # project-softeng
-nigerigegi
+ayam goreng semart pakirkir
