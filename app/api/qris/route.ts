@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   } catch (error) {
     return NextResponse.json({ 
       sukses: false, 
-      pesan: "Error bos" 
+      pesan: "Error" 
     }, { status: 500 });
   }
 }
