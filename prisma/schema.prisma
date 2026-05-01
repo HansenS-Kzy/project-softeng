@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Tabel User (Pengguna)
+model User {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  licensePlate String    // Plat Nomor
+  createdAt    DateTime  @default(now())
+  
+  bookings     Booking[] // Relasi ke tabel Booking
+}
+
+// 2. Tabel Lahan Parkir
+model ParkingSpot {
+  id         String     @id @default(uuid())
+  spotNumber String     @unique // Contoh: "A1", "B2"
+  floor      Int        // Lantai
+  status     SpotStatus @default(KOSONG)
+  
+  bookings   Booking[]  // Relasi ke tabel Booking
+}
+
+// Pilihan status untuk lahan parkir
+enum SpotStatus {
+  KOSONG
+  DIBOOKING
+  TERISI
+}
+
+// 3. Tabel Transaksi / Booking (Jembatan antara User dan Lahan)
+model Booking {
+  id            String   @id @default(uuid())
+  startTime     DateTime // Waktu mulai parkir
+  endTime       DateTime // Waktu selesai parkir
+  totalAmount   Float    // Total biaya
+  paymentStatus String   @default("PENDING") // PENDING, LUNAS, BATAL
+
+  // Relasi: Siapa yang booking?
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+
+  // Relasi: Lahan parkir mana yang dibooking?
+  spotId        String
+  spot          ParkingSpot @relation(fields: [spotId], references: [id])
+}
