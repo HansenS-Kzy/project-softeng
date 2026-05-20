@@ -6,26 +6,60 @@ export default async function HomePage() {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 
+  // Mengambil data user yang sedang login
   const { data: { user } } = await supabase.auth.getUser()
 
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 text-white">
-      <div className="p-8 bg-gray-900 rounded-lg shadow-lg border border-gray-800 text-center">
-        <h1 className="text-3xl font-bold text-blue-500 mb-4">
-          Beranda Aplikasi Parkir 🚗
-        </h1>
-        <p className="text-gray-400 mb-6">
-          Selamat datang! Kamu berhasil login dengan ID: <br/>
-          <span className="text-xs text-green-400">{user?.id}</span>
-        </p>
-        
-        <p>herrick gay</p>
+  // FUNGSI LOGOUT (Server Action)
+  const signOut = async () => {
+    'use server'
+    const cookieStore = await cookies()
+    const supabase = createClient(cookieStore)
+    
+    await supabase.auth.signOut() 
+    redirect('/login') 
+  }
 
-        {/* Nanti kita akan taruh denah parkir di sini */}
-        <div className="p-4 border border-dashed border-gray-600 rounded">
-          Area Denah Parkir (Segera Hadir)
+  return (
+    <div className="min-h-screen bg-gray-950 text-white">
+      
+      {/* 1. NAVBAR (Baris Atas) */}
+      <header className="flex justify-between items-center px-6 py-4 bg-gray-900 border-b border-gray-800 shadow-sm">
+        <h1 className="text-xl font-bold text-blue-500">
+          Aplikasi Parkir 🚗
+        </h1>
+
+        {/* Tombol Logout dipindah ke sini */}
+        <form action={signOut}>
+          <button 
+            type="submit" 
+            className="bg-red-600 hover:bg-red-500 text-white font-semibold py-2 px-4 rounded transition-colors text-sm"
+          >
+            Keluar
+          </button>
+        </form>
+      </header>
+
+      {/* 2. KONTEN UTAMA (Tengah Layar) */}
+      <main className="flex flex-col items-center mt-12 px-4">
+        
+        {/* Info User */}
+        <div className="mb-8 text-center">
+          <p className="text-gray-400">
+            Selamat datang! Kamu berhasil login dengan ID:
+          </p>
+          <p className="text-sm text-green-400 font-mono mt-1">
+            {user?.id}
+          </p>
         </div>
-      </div>
+
+        {/* Area Pemetaan Lahan Parkir */}
+        <div className="w-full max-w-4xl p-8 border-2 border-dashed border-gray-700 rounded-xl bg-gray-900/50 flex items-center justify-center min-h-[300px]">
+          <p className="text-gray-500 text-lg">
+            Area Denah Parkir & Fitur Booking (Segera Hadir)
+          </p>
+        </div>
+        
+      </main>
     </div>
   )
 }
