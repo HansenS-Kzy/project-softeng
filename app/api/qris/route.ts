@@ -11,8 +11,7 @@ export async function POST(request: Request) {
 
     console.log(`Request QRIS pesanan: ${orderId}`);
 
-    const cekSemuaData = await prisma.reservations.findMany();
-    console.log("ISI DATABASE MENURUT PRISMA:", cekSemuaData);
+
 
     const booking = await prisma.reservations.findUnique({
       where: {
@@ -23,7 +22,7 @@ export async function POST(request: Request) {
     if (!booking) { 
       return NextResponse.json({
         sukses: false,
-        pesan: "Gagal: ID Booking (Reservation) tidak ditemukan di database!"
+        pesan: "Gagal: ID Booking tidak ada di database!"
       }, { status: 404 });
     }
 
@@ -41,7 +40,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       sukses: true,
-      pesan: "Berhasil QRIS",
+      pesan: "Berhasil generate QRIS",
       orderId: orderId,
       urlGambarQris: urlGambarQris
     }, { status: 200 });
@@ -50,7 +49,7 @@ export async function POST(request: Request) {
     console.error("Error", error);
     return NextResponse.json({ 
       sukses: false, 
-      pesan: "Error pada database" 
+      pesan: "Error" 
     }, { status: 500 });
   }
 }
