@@ -14,6 +14,17 @@ export async function bookParkingSlot(slotId: string) {
     return { error: 'Kamu harus login terlebih dahulu!' }
   }
 
+  const { data: existingReservation } = await supabase
+    .from('reservations')
+    .select('id')
+    .eq('user_id', user.id) 
+    .eq('status', 'pending')
+    .maybeSingle()
+
+  if (existingReservation) {
+    return { error: 'Kamu sudah memiliki booking aktif! Selesaikan dulu parkirmu.' }
+  }
+
   // 2. CEK STATUS SLOT (Mencegah Double Booking)
   const { data: slot, error: slotError } = await supabase
     .from('parking_slots')
@@ -45,12 +56,13 @@ export async function bookParkingSlot(slotId: string) {
     .insert({
       user_id: user.id,
       slot_id: slotId,
-      status: 'pending_payment',
+      status: 'pending',
     })
     .select()
     .single()
 
   if (reserveError) {
+    console.error("ALASAN GAGAL BIKIN TIKET:", reserveError)
     await supabase.from('parking_slots').update({ status: 'available' }).eq('id', slotId)
     return { error: 'Gagal membuat tiket reservasi.' }
   }
