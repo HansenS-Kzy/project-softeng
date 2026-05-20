@@ -1,62 +1,120 @@
 import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import { bookParkingSlot } from '@/app/actions/reservation' 
 
 export default async function HomePage() {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 
-  // Mengambil data user yang sedang login
   const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return redirect('/login')
 
-  // FUNGSI LOGOUT (Server Action)
+  const userName = user?.user_metadata?.full_name || 'Pengguna'
+
+  // 1. AMBIL ROLE USER
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+  
+  const isAdmin = profile?.role === 'admin'
+
+  // 2. AMBIL DATA SLOT PARKIR ASLI UNTUK DENAH
+  const { data: slots } = await supabase
+    .from('parking_slots')
+    .select('*')
+    .order('slot_code', { ascending: true })
+
+  // ACTION: Fungsi jembatan untuk memicu booking dari tombol
+  const handleBooking = async (formData: FormData) => {
+    'use server'
+    const slotId = formData.get('slotId') as string
+    await bookParkingSlot(slotId)
+  }
+
+  // FUNGSI LOGOUT
   const signOut = async () => {
     'use server'
     const cookieStore = await cookies()
     const supabase = createClient(cookieStore)
-    
     await supabase.auth.signOut() 
     redirect('/login') 
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
       
-      {/* 1. NAVBAR (Baris Atas) */}
-      <header className="flex justify-between items-center px-6 py-4 bg-gray-900 border-b border-gray-800 shadow-sm">
-        <h1 className="text-xl font-bold text-blue-500">
-          Aplikasi Parkir 🚗
-        </h1>
-
-        {/* Tombol Logout dipindah ke sini */}
-        <form action={signOut}>
-          <button 
-            type="submit" 
-            className="bg-red-600 hover:bg-red-500 text-white font-semibold py-2 px-4 rounded transition-colors text-sm"
-          >
-            Keluar
-          </button>
-        </form>
+      {/* NAVBAR */}
+      <header className="flex justify-between items-center px-6 py-4 bg-white border-b border-gray-200 shadow-sm">
+        <h1 className="text-xl font-bold text-blue-600">Aplikasi Parkir 🚗</h1>
+        <div className="flex items-center gap-4">
+          <span className="font-medium text-gray-600 hidden md:block">Halo, {userName}</span>
+          <form action={signOut}>
+            <button type="submit" className="bg-red-600 hover:bg-red-500 text-white font-semibold py-2 px-4 rounded text-sm transition-colors">
+              Keluar
+            </button>
+          </form>
+        </div>
       </header>
 
-      {/* 2. KONTEN UTAMA (Tengah Layar) */}
-      <main className="flex flex-col items-center mt-12 px-4">
+      {/* KONTEN UTAMA */}
+      <main className="flex flex-col items-center mt-12 px-4 max-w-4xl mx-auto">
         
-        {/* Info User */}
         <div className="mb-8 text-center">
-          <p className="text-gray-400">
-            Selamat datang! Kamu berhasil login dengan ID:
+          <p className="text-gray-600 text-xl">
+            Selamat datang, <span className="font-bold text-blue-600">{userName}</span>!
           </p>
-          <p className="text-sm text-green-400 font-mono mt-1">
-            {user?.id}
-          </p>
+          {isAdmin && (
+            <Link href="/admin" className="inline-block mt-4 bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-all">
+              ⚙️ Masuk ke Dashboard Admin
+            </Link>
+          )}
         </div>
 
-        {/* Area Pemetaan Lahan Parkir */}
-        <div className="w-full max-w-4xl p-8 border-2 border-dashed border-gray-700 rounded-xl bg-gray-900/50 flex items-center justify-center min-h-[300px]">
-          <p className="text-gray-500 text-lg">
-            Area Denah Parkir & Fitur Booking (Segera Hadir)
-          </p>
+        {/* DENAH LAHAN PARKIR LIVE */}
+        <div className="w-full bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+          <h2 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+            🗺️ Denah Slot Parkir Kampus
+          </h2>
+
+          {slots && slots.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {slots.map((slot) => (
+                <div 
+                  key={slot.id} 
+                  className={`border rounded-xl p-4 text-center transition-all ${
+                    slot.status === 'available' 
+                      ? 'border-green-200 bg-green-50/50' 
+                      : 'border-red-200 bg-red-50/50 opacity-75'
+                  }`}
+                >
+                  <p className="font-extrabold text-xl text-gray-800">{slot.slot_code}</p>
+                  <p className={`text-xs font-semibold mt-1 ${slot.status === 'available' ? 'text-green-600' : 'text-red-600'}`}>
+                    {slot.status === 'available' ? 'Kosong' : 'Terisi'}
+                  </p>
+
+                  {/* Tombol Booking Form */}
+                  {slot.status === 'available' ? (
+                    <form action={handleBooking} className="mt-3">
+                      <input type="hidden" name="slotId" value={slot.id} />
+                      <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-3 rounded-lg shadow-sm transition-colors">
+                        Booking Spot
+                      </button>
+                    </form>
+                  ) : (
+                    <button disabled className="w-full mt-3 bg-gray-200 text-gray-400 text-xs font-bold py-2 px-3 rounded-lg cursor-not-allowed">
+                      Full Booked
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-400 italic text-center py-8">Belum ada slot parkir yang dibuka oleh Admin.</p>
+          )}
         </div>
         
       </main>
