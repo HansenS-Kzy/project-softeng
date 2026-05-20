@@ -21,17 +21,17 @@ export async function POST(request: Request) {
 
     let databaseStatus = "";
 
-    if (transaction_status === "completed") {
+    if (transaction_status === "completed" || transaction_status === "success") {
       databaseStatus = "completed";
     } 
-    else if (transaction_status === "cancel") {
+    else if (transaction_status === "cancel" || transaction_status === "cancelled") {
       databaseStatus = "cancelled"; 
     } 
     else {
       return NextResponse.json({ 
-        sukses: true, 
-        pesan: `Invalid action` 
-      }, { status: 200 });
+        sukses: false,
+        pesan: `Invalid action: ${transaction_status}` 
+      }, { status: 400 });
     }
 
     const updateBooking = await prisma.reservations.update({

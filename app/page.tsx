@@ -33,6 +33,7 @@ export default async function HomePage() {
   const hasActiveBooking = !!myReservation
   const mySlotCode = (myReservation as any)?.parking_slots?.slot_code
   const myStartTime = myReservation?.created_at // 👈 Tarik waktu booking-nya
+  const myReservationId = myReservation?.id
 
   const { data: slots } = await supabase
     .from('parking_slots')
@@ -74,8 +75,8 @@ export default async function HomePage() {
         </div>
 
         {/* 🔥 GUNAKAN BANNER DINAMIS DI SINI */}
-        {hasActiveBooking && mySlotCode && myStartTime && (
-          <ActiveBookingBanner slotCode={mySlotCode} startTime={myStartTime} />
+        {hasActiveBooking && mySlotCode && myStartTime && myReservationId && (
+          <ActiveBookingBanner slotCode={mySlotCode} startTime={myStartTime} reservationId={myReservationId} />
         )}
 
         <div className="w-full bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
