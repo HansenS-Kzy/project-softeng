@@ -3,7 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import BookingButton from "./BookingButton";
-import ActiveBookingBanner from "./ActiveBookingBanner"; // 👈 Import Banner Dinamis
+import ActiveBookingBanner from "./ActiveBookingBanner";
 import RegisterVehicleModal from "./RegisterVehicleModal";
 
 export default async function HomePage() {
@@ -25,18 +25,39 @@ export default async function HomePage() {
 
   const isAdmin = profile?.role === "admin";
 
-  // AMBIL RESERVASI AKTIF (Sekarang kita juga mengambil 'created_at')
+  const waktuSekarang = new Date().toISOString();
+
+  const { data: expiredBookings } = await supabase
+    .from("reservations")
+    .select("id, slot_id")
+    .eq("status", "pending")
+    .lt("expired_at", waktuSekarang);
+
+  if (expiredBookings && expiredBookings.length > 0) {
+    const expiredIds = expiredBookings.map((b) => b.id);
+    const expiredSlotIds = expiredBookings.map((b) => b.slot_id);
+
+    // Batalkan reservasi yang sudah lewat 10 menit
+    await supabase.from("reservations").update({ status: "cancelled" }).in("id", expiredIds);
+    
+    // Kembalikan slot parkir jadi available
+    await supabase.from("parking_slots").update({ status: "available" }).in("id", expiredSlotIds);
+  }
+
+  // Ambil reservasi aktif 
   const { data: myReservation } = await supabase
     .from("reservations")
     .select("*, parking_slots(slot_code)")
     .eq("user_id", user.id)
-    .eq("status", "pending")
+    .in("status", ["pending", "booked", "parked"])
     .maybeSingle();
 
   const hasActiveBooking = !!myReservation;
   const mySlotCode = (myReservation as any)?.parking_slots?.slot_code;
-  const myStartTime = myReservation?.created_at; // 👈 Tarik waktu booking-nya
+  const myStartTime = myReservation?.entry_time || myReservation?.created_at; 
+  const myExpiredAt = myReservation?.expired_at;
   const myReservationId = myReservation?.id;
+  const myStatus = myReservation?.status;
 
   const { data: slots } = await supabase
     .from("parking_slots")
@@ -54,7 +75,7 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
       <header className="flex justify-between items-center px-6 py-4 bg-white border-b border-gray-200 shadow-sm">
-        <h1 className="text-xl font-bold text-blue-600">Aplikasi Parkir 🚗</h1>
+        <h1 className="text-xl font-bold text-blue-600">Aplikasi Booking Parkir</h1>
         <div className="flex items-center gap-4">
           <span className="font-medium text-gray-600 hidden md:block">
             Halo, {userName}
@@ -86,12 +107,14 @@ export default async function HomePage() {
           )}
         </div>
 
-        {/* 🔥 GUNAKAN BANNER DINAMIS DI SINI */}
+        {/* Banner Dinamis */}
         {hasActiveBooking && mySlotCode && myStartTime && myReservationId && (
           <ActiveBookingBanner
             slotCode={mySlotCode}
             startTime={myStartTime}
             reservationId={myReservationId}
+            expiredAt={myExpiredAt}
+            status={myStatus}
           />
         )}
 

@@ -82,7 +82,7 @@ export default async function AdminPage() {
     revalidatePath('/admin')
   }
 
-  // TAMPILAN HALAMAN (UI)
+  // UI
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 p-8 font-sans">
       <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -115,7 +115,7 @@ export default async function AdminPage() {
             {slots && slots.length > 0 ? (
               <div className="grid grid-cols-3 gap-4">
                 {slots.map((slot) => {
-                  // 🔥 FITUR BARU: Mencocokkan lahan parkir dengan tiket reservasi
+                  // Pemcocokan lahan parkir dengan reservasi
                   const bookingInfo = activeBookings?.find(b => b.slot_id === slot.id)
                   const bookerName = (bookingInfo?.profiles as any)?.full_name
 
@@ -126,7 +126,7 @@ export default async function AdminPage() {
                         {slot.status === 'available' ? 'Kosong' : 'Terisi'}
                       </p>
                       
-                      {/* 🔥 FITUR BARU: Menampilkan nama user jika slot sedang terisi */}
+                      {/* Menampilkan nama user saat sudah reservasi */}
                       {slot.status !== 'available' && bookerName && (
                         <p className="mt-2 text-[11px] font-bold text-blue-800 bg-blue-100 py-1 px-2 rounded break-words">
                           👤 {bookerName}

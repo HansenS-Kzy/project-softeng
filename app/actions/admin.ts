@@ -14,11 +14,11 @@ export async function createParkingSlot(formData: FormData) {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 
-  // 1. Ambil data sesi user saat ini
+  // 1. Ambil data user saat ini
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Akses ditolak. Silakan login.' }
 
-  // 2. CEK OTORISASI: Apakah user ini adalah Admin?
+  // 2. Cek Admin
   const { data: profile } = await supabase
     .from('profiles')
     .select('role')
@@ -26,10 +26,10 @@ export async function createParkingSlot(formData: FormData) {
     .single()
 
   if (profile?.role !== 'admin') {
-    return { error: 'Akses ilegal! Hanya Admin yang boleh menambah lahan.' }
+    return { error: 'Akses Terbatas' }
   }
 
-  // 3. Eksekusi penambahan lahan ke database
+  // 3. Menambahkan parkir
   const { error } = await supabase
     .from('parking_slots')
     .insert({
@@ -39,10 +39,9 @@ export async function createParkingSlot(formData: FormData) {
 
   if (error) {
     console.error(error)
-    return { error: 'Gagal menyimpan ke database. Cek kembali koneksi.' }
+    return { error: 'Gagal menyimpan ke database.' }
   }
 
-  // 4. Refresh tampilan agar slot baru langsung muncul
   revalidatePath('/admin') 
   
   return { success: true, message: `Lahan parkir ${slotName} berhasil ditambahkan!` }
