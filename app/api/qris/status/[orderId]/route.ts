@@ -1,20 +1,18 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
 export const runtime = "nodejs";
 
 export async function GET(
   request: Request,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> } 
 ) {
   try {
-    const orderId = params.orderId;
+    const { orderId } = await params; 
 
     if (!orderId) {
-      return NextResponse.json({ 
-        sukses: false, 
-        pesan: "Invalid" 
-      }, { status: 400 });
+      return NextResponse.json({ sukses: false, pesan: "Invalid" }, { status: 400 });
     }
 
     const booking = await prisma.reservations.findUnique({

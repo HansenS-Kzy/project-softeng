@@ -14,9 +14,9 @@ export default function BookingButton({ slotId, disabled }: BookingButtonProps) 
     const result = await bookParkingSlot(slotId)
     
     if (result?.error) {
-      alert('❌ Gagal: ' + result.error)
+      alert('Gagal: ' + result.error)
     } else if (result?.success) {
-      alert('✅ Sukses: ' + result.message)
+      alert('Sukses: ' + result.message)
     }
   }
 

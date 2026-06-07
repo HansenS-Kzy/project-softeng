@@ -544,6 +544,8 @@ model reservations {
   parking_slots parking_slots? @relation(fields: [slot_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   profiles      profiles?      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   vehicles      vehicles?      @relation(fields: [vehicle_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  entry_time    DateTime?      @db.Timestamptz(6)
+  exit_time     DateTime?      @db.Timestamptz(6)
 
   @@schema("public")
 }
