@@ -10,11 +10,6 @@ import { clsx } from 'clsx';
 
 const adminLinks = [
   { href: '/admin', label: 'Control Center', icon: LayoutGrid },
-  { href: '/admin/map', label: 'Live Map', icon: Map },
-  { href: '/admin/reservations', label: 'Reservations', icon: BookOpen },
-  { href: '/admin/users', label: 'Users', icon: ShieldCheck },
-  { href: '/admin/analytics', label: 'Analytics', icon: Activity },
-  { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
 export default function AdminSidebar() {

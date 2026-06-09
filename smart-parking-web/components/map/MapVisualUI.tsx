@@ -103,7 +103,7 @@ export default function MapVisualUI({ slots, vehicles, onReservationSuccess }: M
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
           {filteredSlots.map((slot, index) => (
             <ParkingSlotCard
-              key={slot.slotID}
+              key={slot.coordinate}
               slot={slot}
               index={index}
               onClick={setSelectedSlot}

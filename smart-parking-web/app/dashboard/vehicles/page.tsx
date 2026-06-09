@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Car, Zap, Fuel, Plus, Trash2, Palette,
-  Hash, Shield, X, ChevronDown
+  Zap, Fuel, Plus, Trash2,
+  Hash, X, ChevronDown, Car
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { fetchUserVehicles, addVehicle, deleteVehicle } from '@/services/api';
-import { Vehicle, VehicleType, FuelType } from '@/types';
+import { Vehicle, FuelType } from '@/types';
 import { clsx } from 'clsx';
 
 export default function VehiclesPage() {
@@ -17,13 +17,9 @@ export default function VehiclesPage() {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
 
-  // Add form
-  const [brand, setBrand] = useState('');
-  const [model, setModel] = useState('');
+  // Form States yang disederhanakan (Hanya Plat & Tipe Bahan Bakar)
   const [plate, setPlate] = useState('');
-  const [vType, setVType] = useState<VehicleType>('Sedan');
   const [fType, setFType] = useState<FuelType>('Petrol');
-  const [color, setColor] = useState('');
   const [addLoading, setAddLoading] = useState(false);
 
   useEffect(() => {
@@ -42,19 +38,25 @@ export default function VehiclesPage() {
     try {
       const newVeh = await addVehicle({
         userID: currentUser.userID,
-        brand,
-        model,
         licensePlate: plate,
-        vehicleType: vType,
         fuelType: fType,
-        color,
+        // Kita kirim string kosong untuk menghindari error TypeScript, 
+        // tapi data ini tidak akan masuk ke database
+        brand: 'N/A',
+        model: 'N/A',
+        color: 'N/A',
+        vehicleType: fType === 'Electric' ? 'EV' : 'Sedan',
       });
       setVehicles((prev) => [...prev, newVeh]);
-      addToast('success', 'Vehicle Added', `${brand} ${model} registered successfully.`);
+      addToast('success', 'Vehicle Added', `Vehicle ${plate} registered successfully.`);
       setShowAddModal(false);
-      setBrand(''); setModel(''); setPlate(''); setColor('');
-    } catch {
-      addToast('error', 'Failed', 'Could not add vehicle.');
+      setPlate('');
+    } catch (error: any) {
+      // 1. Tangkap dan tampilkan error asli dari Supabase ke console
+      console.error("DETAIL ERROR ADD VEHICLE:", error);
+
+      // 2. Tampilkan pesan error asli di layar
+      addToast('error', 'Failed', error?.message || 'Could not add vehicle.');
     } finally {
       setAddLoading(false);
     }
@@ -138,21 +140,17 @@ export default function VehiclesPage() {
 
             {/* Card Body */}
             <div className="px-6 py-5">
-              <h3 className="text-xl font-bold text-white mb-0.5">{v.brand} {v.model}</h3>
-              <p className="text-sm text-slate-500 font-mono mb-4">Plate: {v.licensePlate}</p>
+              {/* Plat nomor dijadikan judul besar */}
+              <h3 className="text-xl font-bold text-white mb-1">{v.licensePlate}</h3>
+              <div className="flex items-center gap-2 text-sm text-slate-400 mb-4">
+                <Car size={14} />
+                <span>{v.fuelType === 'Electric' ? 'Electric Vehicle (EV)' : 'Standard Vehicle'}</span>
+              </div>
 
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-2 text-slate-400"><Car size={14} /> Type</span>
-                  <span className="text-white">{v.vehicleType}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-2 text-slate-400"><Palette size={14} /> Color</span>
-                  <span className="text-white">{v.color}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-2 text-slate-400"><Hash size={14} /> ID</span>
-                  <span className="text-slate-500 font-mono text-xs">{v.vehicleID}</span>
+                  <span className="flex items-center gap-2 text-slate-400"><Hash size={14} /> DB ID</span>
+                  <span className="text-slate-500 font-mono text-xs">{v.vehicleID.split('-')[0]}...</span>
                 </div>
               </div>
             </div>
@@ -182,7 +180,7 @@ export default function VehiclesPage() {
           >
             <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowAddModal(false)} />
             <motion.div
-              className="relative glass-elevated rounded-2xl border border-white/[0.08] w-full max-w-md overflow-hidden"
+              className="relative glass-elevated rounded-2xl border border-white/[0.08] w-full max-w-sm overflow-hidden"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
@@ -194,45 +192,31 @@ export default function VehiclesPage() {
                 </button>
               </div>
               <form onSubmit={handleAdd} className="p-6 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">Brand</label>
-                    <input value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Tesla" className="input-field w-full px-4 py-3 rounded-xl text-sm" required />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">Model</label>
-                    <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="Model 3" className="input-field w-full px-4 py-3 rounded-xl text-sm" required />
-                  </div>
-                </div>
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">License Plate</label>
-                  <input value={plate} onChange={(e) => setPlate(e.target.value)} placeholder="SYS-1234" className="input-field w-full px-4 py-3 rounded-xl text-sm" required />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">Vehicle Type</label>
-                    <div className="relative">
-                      <select value={vType} onChange={(e) => setVType(e.target.value as VehicleType)} className="input-field w-full px-4 py-3 rounded-xl text-sm appearance-none pr-8">
-                        {['Sedan', 'SUV', 'Motorcycle', 'Truck'].map((t) => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                      <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">Fuel Type</label>
-                    <div className="relative">
-                      <select value={fType} onChange={(e) => setFType(e.target.value as FuelType)} className="input-field w-full px-4 py-3 rounded-xl text-sm appearance-none pr-8">
-                        {['Petrol', 'Electric', 'Hybrid'].map((t) => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                      <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
-                    </div>
-                  </div>
+                  <input
+                    value={plate}
+                    onChange={(e) => setPlate(e.target.value.toUpperCase())}
+                    placeholder="e.g., B 1234 CD"
+                    className="input-field w-full px-4 py-3 rounded-xl text-sm"
+                    required
+                  />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">Color</label>
-                  <input value={color} onChange={(e) => setColor(e.target.value)} placeholder="Midnight Blue" className="input-field w-full px-4 py-3 rounded-xl text-sm" required />
+                  <label className="block text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">Fuel Type</label>
+                  <div className="relative">
+                    <select
+                      value={fType}
+                      onChange={(e) => setFType(e.target.value as FuelType)}
+                      className="input-field w-full px-4 py-3 rounded-xl text-sm appearance-none pr-8"
+                    >
+                      {['Petrol', 'Electric', 'Hybrid'].map((t) => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                    <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                  </div>
                 </div>
-                <button type="submit" disabled={addLoading} className="btn-primary w-full py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50">
+
+                <button type="submit" disabled={addLoading} className="btn-primary w-full py-4 rounded-xl flex items-center justify-center gap-2 mt-4 disabled:opacity-50">
                   {addLoading ? <div className="w-5 h-5 border-2 border-[#0a0e17]/40 border-t-[#0a0e17] rounded-full animate-spin" /> : <><Plus size={16} /> Register Vehicle</>}
                 </button>
               </form>

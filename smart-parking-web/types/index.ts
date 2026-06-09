@@ -12,7 +12,7 @@ export interface User {
   tier?: 'Standard' | 'Premium';
 }
 
-export type VehicleType = 'Sedan' | 'SUV' | 'Motorcycle' | 'Truck';
+export type VehicleType = 'Sedan' | 'SUV' | 'Motorcycle' | 'Truck' | 'EV' | 'normal';
 export type FuelType = 'Petrol' | 'Electric' | 'Hybrid';
 
 export interface Vehicle {

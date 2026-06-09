@@ -28,7 +28,7 @@ export default function PaymentCard({ reservation, slot, onComplete }: PaymentCa
 
   const qrPayload = JSON.stringify({
     reservationID: reservation.reservationID,
-    slotID: slot.slotID,
+    slotID: slot.coordinate,
     amount: totalPrice,
     timestamp: new Date().toISOString(),
   });

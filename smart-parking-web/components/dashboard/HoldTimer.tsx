@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Clock, AlertTriangle } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -12,6 +12,8 @@ interface HoldTimerProps {
 
 export default function HoldTimer({ expiresAt, onExpire, compact = false }: HoldTimerProps) {
   const [timeLeft, setTimeLeft] = useState<number>(0);
+  const TOTAL_DURATION = 3600; // 1 Jam
+  const hasExpired = useRef(false); // KUNCI ANTI-SPAM
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -20,23 +22,40 @@ export default function HoldTimer({ expiresAt, onExpire, compact = false }: Hold
       return Math.max(0, Math.floor((expiry - now) / 1000));
     };
 
-    setTimeLeft(calculateTimeLeft());
+    const initialTime = calculateTimeLeft();
+    setTimeLeft(initialTime);
+
+    // Cek di awal apakah sudah kedaluwarsa
+    if (initialTime <= 0 && !hasExpired.current) {
+      hasExpired.current = true;
+      if (onExpire) onExpire();
+      return;
+    }
 
     const interval = setInterval(() => {
       const remaining = calculateTimeLeft();
       setTimeLeft(remaining);
+
       if (remaining <= 0) {
         clearInterval(interval);
-        onExpire?.();
+        // Pastikan fungsi onExpire hanya dipanggil 1x
+        if (!hasExpired.current) {
+          hasExpired.current = true;
+          if (onExpire) onExpire();
+        }
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [expiresAt, onExpire]);
+    // onExpire sengaja tidak dimasukkan ke dependency array agar tidak memicu re-render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expiresAt]);
 
-  const minutes = Math.floor(timeLeft / 60);
+  const hours = Math.floor(timeLeft / 3600);
+  const minutes = Math.floor((timeLeft % 3600) / 60);
   const seconds = timeLeft % 60;
-  const isDanger = timeLeft < 300; // Less than 5 minutes
+
+  const isDanger = timeLeft > 0 && timeLeft < 300;
   const isExpired = timeLeft <= 0;
 
   const formatTime = (n: number) => n.toString().padStart(2, '0');
@@ -91,7 +110,7 @@ export default function HoldTimer({ expiresAt, onExpire, compact = false }: Hold
               : 'text-[#00f0ff] glow-neon-text'
         )}
       >
-        {isExpired ? '00:00:00' : `00:${formatTime(minutes)}:${formatTime(seconds)}`}
+        {isExpired ? '00:00:00' : `${formatTime(hours)}:${formatTime(minutes)}:${formatTime(seconds)}`}
       </div>
 
       {isDanger && !isExpired && (
@@ -103,18 +122,17 @@ export default function HoldTimer({ expiresAt, onExpire, compact = false }: Hold
         </div>
       )}
 
-      {/* Progress bar */}
-      <div className="mt-4 capacity-bar">
+      <div className="mt-4 capacity-bar h-2 bg-white/5 rounded-full overflow-hidden">
         <div
           className={clsx(
-            'capacity-fill',
+            'h-full transition-all duration-1000',
             isExpired
               ? 'bg-red-500'
               : isDanger
                 ? 'bg-gradient-to-r from-red-500 to-orange-500'
                 : 'bg-gradient-to-r from-[#00f0ff] to-[#0891b2]'
           )}
-          style={{ width: `${Math.min(100, (timeLeft / 1800) * 100)}%` }}
+          style={{ width: `${Math.min(100, (timeLeft / TOTAL_DURATION) * 100)}%` }}
         />
       </div>
     </div>

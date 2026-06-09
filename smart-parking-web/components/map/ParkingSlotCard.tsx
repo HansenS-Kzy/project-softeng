@@ -71,7 +71,7 @@ export default function ParkingSlotCard({ slot, onClick, index }: ParkingSlotCar
                 : 'text-slate-300'
         )}
       >
-        {slot.slotID}
+        {slot.coordinate}
       </span>
 
       {/* Status indicator */}

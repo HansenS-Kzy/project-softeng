@@ -3,14 +3,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  CheckCircle, XCircle, Edit, MoreVertical, ChevronDown,
-  Circle, Search, Filter
+  CheckCircle, XCircle, Edit, ChevronDown,
+  Circle, Search
 } from 'lucide-react';
 import { Reservation, User, Vehicle, ParkingSlot, ReservationStatus } from '@/types';
 import { cancelReservation, validateReservation } from '@/services/api';
 import { useApp } from '@/context/AppContext';
 import HoldTimer from '@/components/dashboard/HoldTimer';
-import { clsx } from 'clsx';
 
 interface ReservationsTableProps {
   reservations: Reservation[];
@@ -35,14 +34,18 @@ export default function ReservationsTable({
   const getUserName = (userID: string) =>
     users.find((u) => u.userID === userID)?.name ?? userID;
 
-  const getVehicleInfo = (vehicleID: string) => {
+  const getVehiclePlate = (vehicleID: string) => {
     const v = vehicles.find((v) => v.vehicleID === vehicleID);
-    return v ? `${v.brand} ${v.model}` : vehicleID;
+    return v?.licensePlate || '—';
   };
 
   const getSlotInfo = (slotID: string) => {
     const s = slots.find((s) => s.slotID === slotID);
-    return s ? `${slotID} · Zone ${s.zone}` : slotID;
+    return {
+      coordinate: s?.coordinate ?? slotID,
+      zone: s?.zone ?? '—',
+      category: s?.category ?? 'Standard',
+    };
   };
 
   const filtered = reservations.filter((r) => {
@@ -133,7 +136,8 @@ export default function ReservationsTable({
         <table className="w-full">
           <thead>
             <tr className="border-b border-white/[0.06]">
-              {['Slot ID', 'User Identity', 'Vehicle', 'Status / Hold Time', 'Amount', 'Actions'].map(
+              {/* DIUBAH: 'Amount' sudah dihapus dari daftar header di bawah ini */}
+              {['Slot ID', 'User Identity', 'License Plate', 'Status / Hold Time', 'Actions'].map(
                 (col) => (
                   <th
                     key={col}
@@ -154,12 +158,27 @@ export default function ReservationsTable({
                 transition={{ delay: i * 0.05 }}
                 className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors"
               >
+                {/* Slot Info */}
                 <td className="px-6 py-4">
-                  <div>
-                    <p className="font-mono font-bold text-[#00f0ff] text-sm">{r.slotID}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">{getSlotInfo(r.slotID)}</p>
-                  </div>
+                  {(() => {
+                    const info = getSlotInfo(r.slotID);
+                    return (
+                      <div className="flex items-center gap-2">
+                        <div className="w-9 h-9 rounded-lg bg-[#00f0ff]/10 border border-[#00f0ff]/20 flex items-center justify-center flex-shrink-0">
+                          <span className="font-mono font-bold text-[#00f0ff] text-[10px] leading-none">
+                            {info.coordinate.slice(0, 2)}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-mono font-bold text-[#00f0ff] text-sm">{info.coordinate}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">Zone {info.zone} · {info.category}</p>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </td>
+
+                {/* User Info */}
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-full bg-dark-600 border border-white/10 flex items-center justify-center text-xs font-bold text-slate-300">
@@ -171,30 +190,35 @@ export default function ReservationsTable({
                     </div>
                   </div>
                 </td>
+
+                {/* License Plate */}
                 <td className="px-6 py-4">
-                  <p className="text-sm text-slate-300">{getVehicleInfo(r.vehicleID)}</p>
+                  <span className="text-sm font-bold font-mono tracking-widest text-white bg-white/10 px-2 py-0.5 rounded border border-white/20">
+                    {getVehiclePlate(r.vehicleID)}
+                  </span>
                 </td>
+
+                {/* Status & Timer */}
                 <td className="px-6 py-4">
-                  <div className="flex flex-col gap-1.5">
+                  <div className="flex flex-col gap-1.5 items-start">
                     <span className={statusBadgeClass[r.status]}>{r.status}</span>
-                    {r.holdExpiresAt && r.status === 'Active' && (
+                    {r.holdExpiresAt && (r.status === 'Pending' || r.status === 'Active') && (
                       <HoldTimer expiresAt={r.holdExpiresAt} compact />
                     )}
                   </div>
                 </td>
-                <td className="px-6 py-4">
-                  <p className="text-sm font-semibold text-white">
-                    {r.totalPrice ? `Rp ${r.totalPrice.toLocaleString('id-ID')}` : '—'}
-                  </p>
-                </td>
+
+                {/* DIUBAH: Blok kodingan untuk Amount / Harga sudah dihapus dari sini */}
+
+                {/* Actions */}
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
-                    {r.status === 'Active' && (
+                    {(r.status === 'Active' || r.status === 'Pending') && (
                       <>
                         <button
                           onClick={() => handleValidate(r.reservationID)}
                           disabled={actionLoading === r.reservationID}
-                          title="Validate"
+                          title="Complete / Validate"
                           className="p-1.5 rounded-lg text-emerald-400 hover:bg-emerald-400/10 transition-colors disabled:opacity-50"
                         >
                           <CheckCircle size={16} />

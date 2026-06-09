@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-  CalendarClock, Clock, MapPin, Car, CreditCard,
-  ChevronRight, CheckCircle, XCircle, AlertTriangle
+  CalendarClock, Clock, MapPin, CreditCard,
+  CheckCircle, XCircle
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { fetchUserReservations, fetchParkingSlots, fetchUserVehicles } from '@/services/api';
@@ -104,7 +104,7 @@ export default function BookingsPage() {
               const slot = getSlot(r.slotID);
               const vehicle = getVehicle(r.vehicleID);
               const config = statusConfig[r.status];
-              const StatusIcon = config.icon;
+              // const StatusIcon = config.icon; // Not strictly needed unless you want to render it in UI
 
               return (
                 <motion.div
@@ -130,46 +130,47 @@ export default function BookingsPage() {
                           <p className="text-xs text-slate-500 uppercase tracking-wider">
                             {slot?.zone ? `Zone ${slot.zone} · ${slot.floor}` : 'Parking Bay'}
                           </p>
-                          <p className="text-lg font-bold text-white tracking-wider">{r.slotID}</p>
+                          {/* 1. MENGGANTI UUID DENGAN NAMA SLOT/KOORDINAT */}
+                          <p className="text-lg font-bold text-white tracking-wider">
+                            {slot?.coordinate || r.slotID}
+                          </p>
                         </div>
                       </div>
-                      <div className="text-right">
+
+                      {/* 3. MENAMBAHKAN COMPACT HOLD TIMER DI SEBELAH STATUS */}
+                      <div className="flex items-center gap-3 text-right">
+                        {r.status === 'Pending' && r.holdExpiresAt && (
+                          <HoldTimer
+                            expiresAt={r.holdExpiresAt}
+                            compact={true}
+                            onExpire={() => addToast('warning', 'Hold Expired', `Reservation has expired.`)}
+                          />
+                        )}
                         <span className={config.badgeClass}>{r.status}</span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {/* 2. MENGHILANGKAN KOLOM VEHICLE BRAND, FOKUS KE PLAT NOMOR */}
                       <div>
-                        <p className="text-xs text-slate-500 mb-0.5">Vehicle</p>
-                        <p className="text-sm text-white font-medium">
-                          {vehicle ? `${vehicle.brand} ${vehicle.model}` : '—'}
+                        <p className="text-xs text-slate-500 mb-0.5">License Plate</p>
+                        <p className="text-sm text-white font-mono font-bold tracking-widest bg-white/5 inline-block px-2 py-0.5 rounded border border-white/10">
+                          {vehicle?.licensePlate ?? 'NO PLATE'}
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-slate-500 mb-0.5">Plate</p>
-                        <p className="text-sm text-white font-mono">{vehicle?.licensePlate ?? '—'}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-500 mb-0.5">Start</p>
+                        <p className="text-xs text-slate-500 mb-0.5">Start Time</p>
                         <p className="text-sm text-white">
                           {new Date(r.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-slate-500 mb-0.5">Amount</p>
+                        <p className="text-xs text-slate-500 mb-0.5">Amount Due</p>
                         <p className="text-sm text-[#00f0ff] font-semibold">
-                          {r.totalPrice ? `Rp ${r.totalPrice.toLocaleString('id-ID')}` : '—'}
+                          {r.totalPrice ? `Rp ${r.totalPrice.toLocaleString('id-ID')}` : 'Calculating...'}
                         </p>
                       </div>
                     </div>
-
-                    {/* Hold Timer for active reservations */}
-                    {r.status === 'Active' && r.holdExpiresAt && (
-                      <HoldTimer
-                        expiresAt={r.holdExpiresAt}
-                        onExpire={() => addToast('warning', 'Hold Expired', `Reservation ${r.reservationID} has expired.`)}
-                      />
-                    )}
                   </div>
                 </motion.div>
               );

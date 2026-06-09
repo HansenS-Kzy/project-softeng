@@ -4,15 +4,19 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Lock, Mail, User, Cpu, ArrowRight, ShieldCheck } from 'lucide-react';
+// Perubahan 1: Menghapus ShieldCheck dan menambahkan Phone
+import { Eye, EyeOff, Lock, Mail, User, Cpu, ArrowRight, Phone } from 'lucide-react';
 import { signup } from '@/services/api';
 import { useApp } from '@/context/AppContext';
 
 export default function SignupPage() {
   const router = useRouter();
   const { setCurrentUser, addToast } = useApp();
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  // Perubahan 2: Menambahkan state untuk nomor telepon
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -21,12 +25,16 @@ export default function SignupPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const user = await signup(name, email, password);
+      const user = await signup(name, email, password, phone);
       setCurrentUser(user);
       addToast('success', 'Account Created', `Welcome to Metro Park, ${user.name}!`);
       router.push('/dashboard');
-    } catch {
-      addToast('error', 'Signup Failed', 'An error occurred. Please try again.');
+    } catch (error: any) {
+      // 1. Log error ke console browser agar kita bisa baca detailnya
+      console.error("DETAIL ERROR SIGNUP:", error);
+
+      // 2. Tampilkan error asli dari database ke layar (Toast)
+      addToast('error', 'Signup Failed', error?.message || 'An error occurred.');
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +86,7 @@ export default function SignupPage() {
                     id="signup-name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Commander Shepard"
+                    placeholder="Enter Full Name"
                     className="input-field w-full pl-11 pr-4 py-3.5 rounded-xl text-sm"
                     required
                   />
@@ -97,7 +105,26 @@ export default function SignupPage() {
                     id="signup-email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="user@metropark.sys"
+                    placeholder="user@gmail.com"
+                    className="input-field w-full pl-11 pr-4 py-3.5 rounded-xl text-sm"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Perubahan 3: Form Input Nomor Telepon */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">
+                  Phone Number
+                </label>
+                <div className="relative">
+                  <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <input
+                    type="tel"
+                    id="signup-phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="ex 082170889200"
                     className="input-field w-full pl-11 pr-4 py-3.5 rounded-xl text-sm"
                     required
                   />
@@ -116,7 +143,7 @@ export default function SignupPage() {
                     id="signup-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••••••"
+                    placeholder="minimum 6 characters"
                     className="input-field w-full pl-11 pr-12 py-3.5 rounded-xl text-sm"
                     required
                   />
@@ -134,7 +161,7 @@ export default function SignupPage() {
                 type="submit"
                 id="create-account-btn"
                 disabled={isLoading}
-                className="btn-primary w-full py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+                className="btn-primary w-full py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
               >
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-[#0a0e17]/40 border-t-[#0a0e17] rounded-full animate-spin" />
@@ -154,18 +181,7 @@ export default function SignupPage() {
               </p>
             </form>
 
-            {/* Trust Badges */}
-            <div className="px-8 pb-6 flex items-center justify-center gap-6">
-              {[
-                { icon: ShieldCheck, label: 'Encrypted' },
-                { icon: ShieldCheck, label: 'ISO 27001' },
-              ].map((b) => (
-                <div key={b.label} className="flex items-center gap-1.5 text-xs text-slate-600">
-                  <b.icon size={12} />
-                  {b.label}
-                </div>
-              ))}
-            </div>
+            {/* Perubahan 4: Bagian "Trust Badges" (Encrypted & ISO) sudah dihapus secara keseluruhan */}
           </div>
         </motion.div>
       </main>
