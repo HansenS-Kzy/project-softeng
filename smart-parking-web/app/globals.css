@@ -1,0 +1,337 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Smart Parking System — Metro Park Design System
+   Dark futuristic theme with neon cyan accents
+   ============================================================ */
+
+@theme {
+  --color-dark-950: #0a0e17;
+  --color-dark-900: #0d1321;
+  --color-dark-800: #131a2e;
+  --color-dark-700: #1a2340;
+  --color-dark-600: #243054;
+  --color-dark-500: #334670;
+  
+  --color-cyan-400: #22d3ee;
+  --color-cyan-500: #06b6d4;
+  --color-cyan-600: #0891b2;
+  
+  --color-neon: #00f0ff;
+  --color-neon-dim: #00f0ff33;
+  --color-neon-glow: #00f0ff66;
+  
+  --color-slot-standard: #64748b;
+  --color-slot-ev: #10b981;
+  --color-slot-disabled: #3b82f6;
+  --color-slot-occupied: #ef4444;
+  
+  --color-surface: #111827;
+  --color-surface-elevated: #1e293b;
+  --color-surface-hover: #1e293b;
+  
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-family-display: 'Inter', 'Outfit', system-ui, sans-serif;
+}
+
+/* ---- Base Styles ---- */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-family-display);
+  background-color: var(--color-dark-950);
+  color: #e2e8f0;
+  overflow-x: hidden;
+}
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-dark-900);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-dark-600);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-cyan-600);
+}
+
+/* ---- Glow Effects ---- */
+.glow-neon {
+  box-shadow: 0 0 15px var(--color-neon-dim),
+    0 0 30px var(--color-neon-dim),
+    inset 0 0 15px var(--color-neon-dim);
+}
+
+.glow-neon-subtle {
+  box-shadow: 0 0 8px var(--color-neon-dim);
+}
+
+.glow-neon-text {
+  text-shadow: 0 0 10px var(--color-neon-glow),
+    0 0 20px var(--color-neon-dim);
+}
+
+.glow-border {
+  border: 1px solid var(--color-neon);
+  box-shadow: 0 0 10px var(--color-neon-dim),
+    inset 0 0 10px var(--color-neon-dim);
+}
+
+/* ---- Glass Effect ---- */
+.glass {
+  background: rgba(17, 24, 39, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-elevated {
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ---- Slot Card Styles ---- */
+.slot-card {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.slot-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.slot-card:hover::before {
+  opacity: 1;
+}
+
+.slot-card:hover {
+  transform: translateY(-2px);
+}
+
+.slot-standard {
+  border: 1px solid rgba(100, 116, 139, 0.4);
+  background: rgba(100, 116, 139, 0.1);
+}
+.slot-standard:hover {
+  border-color: rgba(100, 116, 139, 0.7);
+  background: rgba(100, 116, 139, 0.2);
+}
+
+.slot-ev {
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  background: rgba(0, 240, 255, 0.05);
+}
+.slot-ev:hover {
+  border-color: rgba(0, 240, 255, 0.7);
+  background: rgba(0, 240, 255, 0.1);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
+}
+
+.slot-disabled {
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  background: rgba(59, 130, 246, 0.1);
+}
+.slot-disabled:hover {
+  border-color: rgba(59, 130, 246, 0.7);
+  background: rgba(59, 130, 246, 0.2);
+}
+
+.slot-occupied {
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.08);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.slot-occupied:hover {
+  transform: none;
+}
+
+/* ---- Button Styles ---- */
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-neon), var(--color-cyan-500));
+  color: #0a0e17;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+.btn-primary:hover {
+  box-shadow: 0 0 25px var(--color-neon-dim);
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ---- Input Styles ---- */
+.input-field {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+  transition: all 0.2s ease;
+}
+.input-field:focus {
+  outline: none;
+  border-color: var(--color-neon);
+  box-shadow: 0 0 0 3px var(--color-neon-dim);
+}
+.input-field::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ---- Timer Animation ---- */
+@keyframes pulse-neon {
+  0%, 100% { box-shadow: 0 0 10px var(--color-neon-dim); }
+  50% { box-shadow: 0 0 25px var(--color-neon-glow); }
+}
+.timer-pulse {
+  animation: pulse-neon 2s ease-in-out infinite;
+}
+
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+  50% { box-shadow: 0 0 25px rgba(239, 68, 68, 0.6); }
+}
+.timer-danger {
+  animation: pulse-red 1s ease-in-out infinite;
+}
+
+/* ---- Grid Lines (Map background) ---- */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ---- Status Badge ---- */
+.badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+}
+
+.badge-active {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.badge-pending {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+.badge-expired {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.badge-completed {
+  background: rgba(100, 116, 139, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+/* ---- Capacity Bar ---- */
+.capacity-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-dark-700);
+  overflow: hidden;
+}
+.capacity-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1s ease;
+}
+
+/* ---- Card hover ---- */
+.card-hover {
+  transition: all 0.3s ease;
+}
+.card-hover:hover {
+  border-color: rgba(0, 240, 255, 0.3);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* ---- Navbar underline ---- */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--color-neon);
+  transition: width 0.3s ease;
+}
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
+
+/* ---- Sidebar ---- */
+.sidebar-link {
+  position: relative;
+  padding-left: 1rem;
+  transition: all 0.2s ease;
+}
+.sidebar-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: transparent;
+  border-radius: 0 2px 2px 0;
+  transition: background 0.2s ease;
+}
+.sidebar-link.active {
+  background: rgba(0, 240, 255, 0.08);
+  color: var(--color-neon);
+}
+.sidebar-link.active::before {
+  background: var(--color-neon);
+}
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
