@@ -4,11 +4,10 @@ import prisma from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 export const runtime = "nodejs";
 
-export async function GET(
-request: Request, { params }: any
-) {
+export async function GET(request: Request) {
   try {
-    const { orderId } = await params; 
+    const { searchParams } = new URL(request.url);
+    const orderId = searchParams.get("orderId"); 
 
     if (!orderId) {
       return NextResponse.json({ sukses: false, pesan: "Invalid" }, { status: 400 });
