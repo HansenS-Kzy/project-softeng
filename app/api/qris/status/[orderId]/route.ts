@@ -5,8 +5,7 @@ export const dynamic = 'force-dynamic';
 export const runtime = "nodejs";
 
 export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ orderId: string }> } 
+request: Request, { params }: any
 ) {
   try {
     const { orderId } = await params; 
