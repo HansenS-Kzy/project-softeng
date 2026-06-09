@@ -1,11 +1,10 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   experimental: {
     serverActions: {
       allowedOrigins: [
-        "localhost:3000", 
-        "*.github.dev", 
+        "localhost:3000",
+        "*.github.dev",
         "*.app.github.dev"
       ]
     }
